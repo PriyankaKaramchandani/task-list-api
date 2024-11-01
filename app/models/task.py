@@ -11,10 +11,12 @@ class Task(db.Model):
 
     def to_dict(self):
         return {
+            "task": {
             "id": self.id,
             "title": self.title,
             "description": self.description,
-            "completed_at": self.completed_at
+            "is_complete": self.is_complete() # will use is_complete helper function to return True or False
+            }
         }
 
     def is_complete(self):
