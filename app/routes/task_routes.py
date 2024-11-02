@@ -2,6 +2,7 @@ from flask import Blueprint, abort, make_response, Response
 from flask import request
 from app.db import db
 from app.models.task import Task
+from datetime import datetime
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
@@ -23,7 +24,15 @@ def create_a_task():
 
 @tasks_bp.get("")
 def get_all_tasks():
-    query = db.select(Task).order_by(Task.id)
+    sort_param = request.args.get("sort")
+
+    query = db.select(Task)
+
+    if sort_param == "desc":
+        query = query.order_by(Task.title.desc())
+    if sort_param == "asc":
+        query = query.order_by(Task.title.asc())
+    
     tasks = db.session.scalars(query)
 
     tasks_response = [task.to_dict()["task"] for task in tasks]
@@ -58,6 +67,26 @@ def delete_task(task_id):
     response = {"details": f"Task {task.id} \"{task.title}\" successfully deleted"}
 
     return response
+
+@tasks_bp.patch("/<task_id>/mark_complete")
+def task_mark_complete(task_id):
+    task = validate_task(task_id)
+    
+    task.completed_at = datetime.now()
+
+    db.session.commit()
+
+    return task.to_dict()
+
+@tasks_bp.patch("/<task_id>/mark_incomplete")
+def task_mark_incomplete(task_id):
+    task = validate_task(task_id)
+
+    task.completed_at = None
+
+    db.session.commit()
+
+    return task.to_dict()
 
 def validate_task(task_id):
     try:
