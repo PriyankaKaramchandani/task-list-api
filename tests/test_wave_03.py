@@ -25,7 +25,7 @@ def test_mark_complete_on_incomplete_task(client, one_task):
 
         # Act
         response = client.patch("/tasks/1/mark_complete")
-    response_body = response.get_json()
+        response_body = response.get_json()
 
     # Assert
     assert response.status_code == 200
@@ -128,7 +128,7 @@ def test_mark_complete_missing_task(client):
     # Assert
     assert response.status_code == 404
     # **Complete test with assertion about response body***************
-    assert response_body == {"message": "There is no existing task with an id of 1"}
+    assert response_body == {"message": "Task 1 is not found"}
 
 # @pytest.mark.skip(reason="No way to test this feature yet")
 def test_mark_incomplete_missing_task(client):
@@ -139,4 +139,4 @@ def test_mark_incomplete_missing_task(client):
     # Assert
     assert response.status_code == 404
     # **Complete test with assertion about response body***************
-    assert response_body == {"message": "There is no existing task with an id of 1"}
+    assert response_body == {"message": "Task 1 is not found"}

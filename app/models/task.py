@@ -23,3 +23,12 @@ class Task(db.Model):
         # will return True if completed_at is not None and will return False if its None
         return self.completed_at is not None
             
+    @classmethod
+    def from_dict(cls, task_data):
+        new_task = Task(
+            title=task_data["title"], 
+            description=task_data["description"], 
+            completed_at=task_data.get("completed_at", None)
+            )
+
+        return new_task

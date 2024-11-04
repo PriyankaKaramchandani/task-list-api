@@ -61,8 +61,7 @@ def test_get_task_not_found(client):
     assert response.status_code == 404
     # **Complete test with assertion about response body***************
     assert len(response_body) == 1
-    assert response_body == {"message": "There is no existing task with an id of 1"}
-
+    assert response_body == {"message": "Task 1 is not found"}
 
 # @pytest.mark.skip(reason="No way to test this feature yet")
 def test_create_task(client):
@@ -129,7 +128,7 @@ def test_update_task_not_found(client):
     # Assert
     assert response.status_code == 404
      # **Complete test with assertion about response body***************
-    assert response_body == {"message": "There is no existing task with an id of 1"}
+    assert response_body == {"message": "Task 1 is not found"}
     assert response.content_type == "application/json"
 
 
@@ -158,7 +157,7 @@ def test_delete_task_not_found(client):
     assert response.status_code == 404
     assert Task.query.all() == []
     # **Complete test with assertion about response body***************
-    assert response_body == {"message": "There is no existing task with an id of 1"}
+    assert response_body == {"message": "Task 1 is not found"}
 
 
 
