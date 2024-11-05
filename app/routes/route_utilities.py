@@ -29,3 +29,22 @@ def create_model(cls, model_data):
     db.session.commit()
 
     return make_response(new_model.to_dict(), 201)
+
+def get_models_with_filters(cls, filters=None):
+    query = db.select(cls)
+    
+    sort_param = filters.get("sort") if filters else None
+
+    if sort_param == "desc":
+        query = query.order_by(getattr(cls, "title").desc())
+    else:
+        query = query.order_by(getattr(cls, "title").asc())
+
+    if filters:
+        for attribute, value in filters.items():
+            if hasattr(cls, attribute):
+                query = query.where(getattr(cls, attribute).ilike(f"%{value}%"))
+
+    models = db.session.scalars(query.order_by(cls.id))
+    models_response = [model.to_dict() for model in models]
+    return models_response

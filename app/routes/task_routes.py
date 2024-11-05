@@ -3,7 +3,7 @@ from flask import request
 from app.db import db
 from app.models.task import Task
 from datetime import datetime
-from app.routes.route_utilities import validate_model, create_model
+from app.routes.route_utilities import validate_model, create_model, get_models_with_filters
 import requests
 import os
 from dotenv import load_dotenv
@@ -17,21 +17,25 @@ def create_a_task():
     request_body = request.get_json()
     return create_model(Task, request_body)
 
+# @bp.get("")
+# def get_all_tasks():
+#     sort_param = request.args.get("sort")
+
+#     query = db.select(Task)
+
+#     if sort_param == "desc":
+#         query = query.order_by(Task.title.desc())
+#     if sort_param == "asc":
+#         query = query.order_by(Task.title.asc())
+    
+#     tasks = db.session.scalars(query)
+
+#     tasks_response = [task.to_dict()["task"] for task in tasks]
+#     return tasks_response
+
 @bp.get("")
 def get_all_tasks():
-    sort_param = request.args.get("sort")
-
-    query = db.select(Task)
-
-    if sort_param == "desc":
-        query = query.order_by(Task.title.desc())
-    if sort_param == "asc":
-        query = query.order_by(Task.title.asc())
-    
-    tasks = db.session.scalars(query)
-
-    tasks_response = [task.to_dict()["task"] for task in tasks]
-    return tasks_response
+    return get_models_with_filters(Task, request.args)
 
 @bp.get("/<task_id>")
 def get_one_task(task_id):
