@@ -8,9 +8,13 @@ def validate_model(cls, model_id):
         abort(make_response({"message": f"{cls.__name__} {model_id} is invalid, should be an int data type"}, 400))
 
     query = db.select(cls).where(cls.id == model_id)
-    task = db.session.scalar(query)
+    model = db.session.scalar(query)
 
-    if not task:
+    if not model:
         abort(make_response({"message": f"{cls.__name__} {model_id} is not found"}, 404))
     
-    return task
+    return model
+
+def validate_missing_attributes(request_body):
+    if "title" not in request_body or "description" not in request_body:
+        abort(make_response({"details": "Invalid data"}, 400))

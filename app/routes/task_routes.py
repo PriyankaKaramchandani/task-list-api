@@ -3,7 +3,12 @@ from flask import request
 from app.db import db
 from app.models.task import Task
 from datetime import datetime
-from app.routes.route_utilities import validate_model
+from app.routes.route_utilities import validate_model, validate_missing_attributes
+import requests
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 bp = Blueprint("bp", __name__, url_prefix="/tasks")
 
@@ -66,23 +71,29 @@ def delete_task(task_id):
 @bp.patch("/<task_id>/mark_complete")
 def task_mark_complete(task_id):
     task = validate_model(Task, task_id)
-    
     task.completed_at = datetime.now()
 
     db.session.commit()
 
-    return task.to_dict()
+    url = "https://slack.com/api/chat.postMessage"
+    token = os.environ.get('SLACKBOT_TOKEN')
+    header = {"Authorization": f"Bearer {token}"}
+    request_body = {
+        "channel": "C07TDEQ17RQ",
+        "text": f"Someone just completed the task {task.title}"
+    }
+
+    notification = requests.post(url, json=request_body, headers=header)
+    if notification:
+        return task.to_dict()
 
 @bp.patch("/<task_id>/mark_incomplete")
 def task_mark_incomplete(task_id):
     task = validate_model(Task, task_id)
-
+    
     task.completed_at = None
 
     db.session.commit()
-
+    
     return task.to_dict()
 
-def validate_missing_attributes(request_body):
-    if "title" not in request_body or "description" not in request_body:
-        abort(make_response({"details": "Invalid data"}, 400))
