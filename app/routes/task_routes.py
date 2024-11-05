@@ -3,7 +3,7 @@ from flask import request
 from app.db import db
 from app.models.task import Task
 from datetime import datetime
-from app.routes.route_utilities import validate_model, validate_missing_attributes
+from app.routes.route_utilities import validate_model, create_model
 import requests
 import os
 from dotenv import load_dotenv
@@ -15,13 +15,7 @@ bp = Blueprint("bp", __name__, url_prefix="/tasks")
 @bp.post("")
 def create_a_task():
     request_body = request.get_json()
-    validate_missing_attributes(request_body)
-    new_task = Task.from_dict(request_body)
-    
-    db.session.add(new_task)
-    db.session.commit()
-
-    return new_task.to_dict(), 201
+    return create_model(Task, request_body)
 
 @bp.get("")
 def get_all_tasks():

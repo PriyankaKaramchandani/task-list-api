@@ -1,5 +1,7 @@
 from flask import abort, make_response
 from app.db import db
+from app.models.goal import Goal
+from app.models.task import Task
 
 def validate_model(cls, model_id):
     try:
@@ -15,6 +17,15 @@ def validate_model(cls, model_id):
     
     return model
 
-def validate_missing_attributes(request_body):
-    if "title" not in request_body or "description" not in request_body:
-        abort(make_response({"details": "Invalid data"}, 400))
+def create_model(cls, model_data):
+    try:
+        new_model = cls.from_dict(model_data)
+        
+    except KeyError as error:
+        response = {'details': 'Invalid data'}
+        abort(make_response(response, 400))
+    
+    db.session.add(new_model)
+    db.session.commit()
+
+    return make_response(new_model.to_dict(), 201)
