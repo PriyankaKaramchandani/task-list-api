@@ -28,7 +28,10 @@ def create_model(cls, model_data):
     db.session.add(new_model)
     db.session.commit()
 
-    return make_response(new_model.to_dict(), 201)
+    if isinstance(new_model, Goal):
+        return make_response(new_model.to_dict(), 201)
+    elif isinstance(new_model, Task):
+        return make_response(new_model.to_dict_without_goal_id(), 201)
 
 def get_models_with_filters(cls, filters=None):
     query = db.select(cls)
@@ -46,5 +49,7 @@ def get_models_with_filters(cls, filters=None):
                 query = query.where(getattr(cls, attribute).ilike(f"%{value}%"))
 
     models = db.session.scalars(query.order_by(cls.id))
-    models_response = [model.to_dict() for model in models]
+
+    models_response = [model.to_dict_without_goal_id()["task"] for model in models]
+
     return models_response

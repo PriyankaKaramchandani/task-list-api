@@ -24,6 +24,16 @@ class Task(db.Model):
             }
         }
 
+    def to_dict_without_goal_id(self):
+        return {
+            "task": {
+            "id": self.id,
+            "title": self.title,
+            "description": self.description,
+            "is_complete": self.is_complete(),
+            }
+        }
+
     def is_complete(self):
         return self.completed_at is not None
             

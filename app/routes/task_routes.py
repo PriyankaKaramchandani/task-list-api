@@ -6,9 +6,6 @@ from datetime import datetime
 from app.routes.route_utilities import validate_model, create_model, get_models_with_filters
 import requests
 import os
-# from dotenv import load_dotenv
-
-# load_dotenv()
 
 bp = Blueprint("bp", __name__, url_prefix="/tasks")
 
@@ -25,7 +22,11 @@ def get_all_tasks():
 def get_one_task(task_id):
     task = validate_model(Task, task_id)
 
-    return task.to_dict()
+    if task.goal:
+        return task.to_dict()
+    else:
+        return task.to_dict_without_goal_id()
+    
     
 @bp.put("/<task_id>")
 def update_one_task(task_id):
@@ -37,7 +38,7 @@ def update_one_task(task_id):
 
     db.session.commit()
 
-    return task.to_dict()
+    return task.to_dict_without_goal_id()
 
 @bp.delete("/<task_id>")
 def delete_task(task_id):
@@ -67,7 +68,7 @@ def task_mark_complete(task_id):
 
     notification = requests.post(url, json=request_body, headers=header)
     if notification:
-        return task.to_dict()
+        return task.to_dict_without_goal_id()
 
 @bp.patch("/<task_id>/mark_incomplete")
 def task_mark_incomplete(task_id):
@@ -77,5 +78,5 @@ def task_mark_incomplete(task_id):
 
     db.session.commit()
     
-    return task.to_dict()
+    return task.to_dict_without_goal_id()
 

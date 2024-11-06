@@ -7,7 +7,7 @@ from .route_utilities import create_model, validate_model
 bp = Blueprint("goals", __name__, url_prefix="/goals")
 
 @bp.post("")
-def creat_goal():
+def create_goal():
     request_body = request.get_json()
     return create_model(Goal, request_body)
 
