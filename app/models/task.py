@@ -45,11 +45,3 @@ class Task(db.Model):
         completed_at=task_data.get("completed_at", None),
         goal_id=task_data.get("goal_id", None)
     )
-        # goal_id = task_data.get("goal_id", None)
-        # new_task = Task(
-        #     title=task_data["title"], 
-        #     description=task_data["description"], 
-        #     completed_at=task_data.get("completed_at", None)
-        #     )
-
-        # return new_task
