@@ -3,9 +3,7 @@ from flask import request
 from app.db import db
 from app.models.task import Task
 from datetime import datetime
-from app.routes.route_utilities import validate_model, create_model, get_models_with_filters
-import requests
-import os
+from app.routes.route_utilities import validate_model, create_model, get_models_with_filters, notify_slack
 
 bp = Blueprint("bp", __name__, url_prefix="/tasks")
 
@@ -21,18 +19,13 @@ def get_all_tasks():
 @bp.get("/<task_id>")
 def get_one_task(task_id):
     task = validate_model(Task, task_id)
-
-    if task.goal:
-        return task.to_dict()
-    else:
-        return task.to_dict_without_goal_id()
-    
+    return task.to_dict() if task.goal else task.to_dict_without_goal_id()
     
 @bp.put("/<task_id>")
 def update_one_task(task_id):
     task = validate_model(Task, task_id)
-    request_body = request.get_json()
 
+    request_body = request.get_json()
     task.title = request_body["title"]
     task.description = request_body["description"]
 
@@ -47,9 +40,7 @@ def delete_task(task_id):
     db.session.delete(task)
     db.session.commit()
 
-    response = {"details": f"Task {task.id} \"{task.title}\" successfully deleted"}
-
-    return response
+    return {"details": f"Task {task.id} \"{task.title}\" successfully deleted"}
 
 @bp.patch("/<task_id>/mark_complete")
 def task_mark_complete(task_id):
@@ -58,18 +49,9 @@ def task_mark_complete(task_id):
 
     db.session.commit()
 
-    url = "https://slack.com/api/chat.postMessage"
-    token = os.environ.get('SLACKBOT_TOKEN')
-    header = {"Authorization": f"Bearer {token}"}
-    request_body = {
-        "channel": "C07TDEQ17RQ",
-        "text": f"Someone just completed the task {task.title}"
-    }
-
-    notification = requests.post(url, json=request_body, headers=header)
-    if notification:
+    if notify_slack(task):
         return task.to_dict_without_goal_id()
-
+    
 @bp.patch("/<task_id>/mark_incomplete")
 def task_mark_incomplete(task_id):
     task = validate_model(Task, task_id)

@@ -2,6 +2,8 @@ from flask import abort, make_response
 from app.db import db
 from app.models.goal import Goal
 from app.models.task import Task
+import requests
+import os
 
 def validate_model(cls, model_id):
     try:
@@ -22,34 +24,40 @@ def create_model(cls, model_data):
         new_model = cls.from_dict(model_data)
         
     except KeyError as error:
-        response = {'details': 'Invalid data'}
-        abort(make_response(response, 400))
+        abort(make_response({'details': 'Invalid data'}, 400))
     
     db.session.add(new_model)
     db.session.commit()
 
-    if isinstance(new_model, Goal):
-        return make_response(new_model.to_dict(), 201)
-    elif isinstance(new_model, Task):
-        return make_response(new_model.to_dict_without_goal_id(), 201)
-
+    response = new_model.to_dict_without_goal_id() if hasattr(new_model, "goal") else new_model.to_dict()
+    return make_response(response, 201)
+    
 def get_models_with_filters(cls, filters=None):
     query = db.select(cls)
     
-    sort_param = filters.get("sort") if filters else None
-
-    if sort_param == "desc":
-        query = query.order_by(getattr(cls, "title").desc())
-    else:
-        query = query.order_by(getattr(cls, "title").asc())
-
     if filters:
+        sort_param = filters.get("sort") 
+        if sort_param == "desc":
+            query = query.order_by(getattr(cls, "title").desc())
+        else:
+            query = query.order_by(getattr(cls, "title").asc())
+
         for attribute, value in filters.items():
             if hasattr(cls, attribute):
                 query = query.where(getattr(cls, attribute).ilike(f"%{value}%"))
 
     models = db.session.scalars(query.order_by(cls.id))
-
     models_response = [model.to_dict_without_goal_id()["task"] for model in models]
 
     return models_response
+
+def notify_slack(task):
+    url = "https://slack.com/api/chat.postMessage"
+    token = os.environ.get('SLACKBOT_TOKEN')
+    header = {"Authorization": f"Bearer {token}"}
+    request_body = {
+        "channel": "C07TDEQ17RQ",
+        "text": f"Someone just completed the task {task.title}"
+    }
+
+    return requests.post(url, json=request_body, headers=header)
