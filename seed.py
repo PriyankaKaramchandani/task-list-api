@@ -1,37 +1,44 @@
-from datetime import datetime
-from app.db import db
+from app import create_app, db
 from app.models.task import Task
-from app.models.goal import Goal  
+from app.models.goal import Goal
+from datetime import datetime
 
+from dotenv import load_dotenv
+load_dotenv()
 
-def seed_data():
+my_app = create_app()
+
+with my_app.app_context():
     
     goal1 = Goal(title="Complete Python Project")
     goal2 = Goal(title="Learn SQLAlchemy")
 
-    
-    task1 = Task(
+    db.session.add(goal1)
+    db.session.add(goal2)
+
+    db.session.add(Task(
         title="Write Python code",
         description="Complete the coding part of the project.",
         completed_at=datetime(2024, 11, 7, 14, 30),
-        goal=goal1  
-    )
-
-    task2 = Task(
+        goal=goal1
+    ))
+    db.session.add(Task(
         title="Test the code",
         description="Run tests to ensure functionality.",
-        completed_at=None,  
-        goal=goal1  
-    )
-
-    task3 = Task(
+        completed_at=None, 
+        goal=goal1
+    ))
+    db.session.add(Task(
         title="Read SQLAlchemy documentation",
         description="Understand SQLAlchemy ORM basics.",
         completed_at=datetime(2024, 11, 6, 10, 0),
-        goal=goal2  
-    )
+        goal=goal2
+    ))
+    db.session.add(Task(
+        title="Practice SQLAlchemy queries",
+        description="Experiment with CRUD operations in SQLAlchemy.",
+        completed_at=None, 
+        goal=goal2
+    ))
 
-    db.session.add_all([goal1, goal2, task1, task2, task3])
     db.session.commit()
-
-
